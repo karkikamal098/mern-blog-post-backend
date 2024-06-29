@@ -2,7 +2,7 @@
 // POST = api/users/post
 //Unprotected
 const registerUsers = (req,res,next)=>{
-    res.json("Edit users details")
+    res.json("register users")
 }
 
 
@@ -18,7 +18,7 @@ const loginUsers = (req,res,next)=>{
 // POST = api/users/userprofile
 //protected
 const getUser = (req,res,next)=>{
-    res.josn("get user information")
+    res.json("get user information")
 }
 
 
@@ -26,14 +26,14 @@ const getUser = (req,res,next)=>{
 // POST = api/users/change-avatar
 //protected
 const changeAvatar = (req,res,next)=>{
-    res.josn("change avatar")
+    res.json("change avatar")
 }
 
 // ===edit user details
 // POST = api/users/edit-User
 //protected
 const editUser = (req,res,next)=>{
-    res.josn("edit profile")
+    res.json("edit profile")
 }
 
 
@@ -41,7 +41,7 @@ const editUser = (req,res,next)=>{
 // POST = api/users/authors
 //protected
 const getAuthors = (req,res,next)=>{
-    res.josn("get authors details")
+    res.json("get authors details")
 }
 
 
