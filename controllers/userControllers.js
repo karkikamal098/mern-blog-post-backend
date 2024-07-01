@@ -1,7 +1,7 @@
 // ===register new User
 // POST = api/users/post
 //Unprotected
-const registerUsers = (req,res,next)=>{
+const registerUsers = async (req,res,next)=>{
     res.json("register users")
 }
 
@@ -9,7 +9,7 @@ const registerUsers = (req,res,next)=>{
 // ===Login new User
 // POST = api/users/login
 //Unprotected
-const loginUsers = (req,res,next)=>{
+const loginUsers = async (req,res,next)=>{
     res.json("login user")
 }
 
@@ -17,7 +17,7 @@ const loginUsers = (req,res,next)=>{
 // ===user profile
 // POST = api/users/userprofile
 //protected
-const getUser = (req,res,next)=>{
+const getUser = async (req,res,next)=>{
     res.json("get user information")
 }
 
@@ -25,14 +25,14 @@ const getUser = (req,res,next)=>{
 // ===change user Avatar
 // POST = api/users/change-avatar
 //protected
-const changeAvatar = (req,res,next)=>{
+const changeAvatar = async (req,res,next)=>{
     res.json("change avatar")
 }
 
 // ===edit user details
 // POST = api/users/edit-User
 //protected
-const editUser = (req,res,next)=>{
+const editUser = async (req,res,next)=>{
     res.json("edit profile")
 }
 
@@ -40,7 +40,7 @@ const editUser = (req,res,next)=>{
 // ===get authors
 // POST = api/users/authors
 //protected
-const getAuthors = (req,res,next)=>{
+const getAuthors = async (req,res,next)=>{
     res.json("get authors details")
 }
 
