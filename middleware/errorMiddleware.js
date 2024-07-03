@@ -11,7 +11,7 @@ const errorHandler = (error, req, res, next) => {
     return next(error);
   }
   res
-    .status(error.code || 500)
+    .status(error.code || 510)
     .json({ message: error.message || "An unknown error occurred" });
 };
 
