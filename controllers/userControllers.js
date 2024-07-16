@@ -6,6 +6,7 @@ const User = require("../models/userModel")
 const HttpError= require("../models/errorModel");
 
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const registerUsers = async (req,res,next) => {
     try{
@@ -36,7 +37,7 @@ const registerUsers = async (req,res,next) => {
        email: newEmail,
        password: hashpassword
     })
-    res.status(202).json(`{email} is registered`);
+    res.status(202).json(`${email} is registered`);
     }
 
     catch(error){
@@ -50,7 +51,33 @@ const registerUsers = async (req,res,next) => {
 // POST = api/users/login
 //Unprotected
 const loginUsers = async (req, res, next) => {
-  res.json("login user");
+  try{
+      const {email, password} = req.body;
+      if(!email || !password){
+        return next(new HttpError("Field could not be empty",400));
+      }
+
+      const newEmail = email.toLowerCase();
+      const emailExist = await User.findOne({ email: newEmail})
+
+       if(!emailExist){
+        return next(new HttpError(`${newEmail} is not registered, first register it`,400))
+       }
+
+       const comparePass = await bcrypt.compare(password, emailExist.password);
+        if (!comparePass){
+            return next(new HttpError("invalidpassword",400));
+        }
+        
+        const {_id:id,name} = emailExist;
+
+        const token = jwt.sign({id,name}, process.env.JWT_SECRET,{expiresIn: "1d"})
+        res.status(200).json({token,id,name})
+       }
+
+  catch(error){
+    return next(new HttpError("user login failed", 500));
+  }
 };
 
 // ===user profile
