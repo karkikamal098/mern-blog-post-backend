@@ -76,7 +76,7 @@ const loginUsers = async (req, res, next) => {
        }
 
   catch(error){
-    return next(new HttpError("user login failed", 500));
+    return next(new HttpError("user login faile", 500));
   }
 };
 
