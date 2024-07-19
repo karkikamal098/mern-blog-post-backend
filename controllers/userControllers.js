@@ -105,7 +105,7 @@ const editUser = async (req, res, next) => {
 // POST = api/users/authors
 //protected
 const getAuthors = async (req, res, next) => {
-  res.json("get authors details");
+  res.json("get authors detail");
 };
 
 module.exports = {
