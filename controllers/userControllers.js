@@ -50,41 +50,51 @@ const registerUsers = async (req,res,next) => {
 // ===Login new User
 // POST = api/users/login
 //Unprotected
-const loginUsers = async (req, res, next) => {
-  try{
-      const {email, password} = req.body;
-      if(!email || !password){
-        return next(new HttpError("Field could not be empty",400));
-      }
-
-      const newEmail = email.toLowerCase();
-      const emailExist = await User.findOne({ email: newEmail})
-
-       if(!emailExist){
-        return next(new HttpError(`${newEmail} is not registered, first register it`,400))
-       }
-
-       const comparePass = await bcrypt.compare(password, emailExist.password);
-        if (!comparePass){
-            return next(new HttpError("invalidpassword",400));
-        }
-        
-        const {_id:id,name} = emailExist;
-
-        const token = jwt.sign({id,name}, process.env.JWT_SECRET,{expiresIn: "1d"})
-        res.status(200).json({token,id,name})
-       }
-
-  catch(error){
-    return next(new HttpError("user login faile", 500));
+const loginUsers = async (req,res,next)=>{
+try {
+  const {email, password} = req.body;
+  if(!email || !password){
+    return next (new HttpError("please enter the empty field",400));
   }
-};
+  
+  const newEmail= email.toLowerCase();
+  const emailExists = await User.findOne({email: newEmail});
+  if (!emailExists){
+    return next(new HttpError("this email is not registered",400));
+  }
+
+  const comparepass = await bcrypt.compare(password,emailExists.password);
+  if (!comparepass){
+    return next(new HttpError("password doesnot match",400));
+  }
+
+  const {_id:id,name} = emailExists;
+ const token = jwt.sign({id,name}, process.env.JWT_SECRET, {expiresIn:"1h"} )
+
+ res.status(200).json({id, name, token});
+
+
+  
+} catch (error) {
+  return next(new HttpError("invalid login",500));
+}
+}
 
 // ===user profile
 // POST = api/users/userprofile
 //protected
 const getUser = async (req, res, next) => {
-  res.json("get user information");
+  try {
+       const {id} = req.params;
+       const user = await User.findById(id).select('-password');
+       if (!user){
+        return next(new HttpError("user not found",400));
+       }
+       res.status(200).json(user);
+  }
+  catch (error) {
+    return next(new HttpError("invalid",500));
+  }
 };
 
 // ===change user Avatar
