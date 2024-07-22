@@ -2,6 +2,8 @@
 // POST = api/users/post
 //Unprotected
 
+const mongoose = require('mongoose');
+
 const User = require("../models/userModel")
 const HttpError= require("../models/errorModel");
 
@@ -85,15 +87,27 @@ try {
 //protected
 const getUser = async (req, res, next) => {
   try {
-       const {id} = req.params;
+       let {id} = req.params;
+
+       id = id.trim();
+
+
+
+       console.log("ID from request params:", id); // Debug: Log the ID
+       if (!mongoose.Types.ObjectId.isValid(id)) {
+         return next(new HttpError("Invalid user ID format", 403));
+       }
+
        const user = await User.findById(id).select('-password');
+       console.log("User Id found:",user);
+
        if (!user){
         return next(new HttpError("user not found",400));
        }
        res.status(200).json(user);
   }
   catch (error) {
-    return next(new HttpError("invalid",500));
+    return next(new HttpError(error));
   }
 };
 
