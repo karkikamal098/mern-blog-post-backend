@@ -10,8 +10,9 @@ const errorHandler = (error, req, res, next) => {
   if (res.headerSent) {
     return next(error);
   }
+  console.error(`Error: ${error.message}, Stack: ${error.stack}`); // Log the error details
   res
-    .status(error.code || 510)
+    .status(error.code || 500)
     .json({ message: error.message || "An unknown error occurred" });
 };
 

@@ -7,13 +7,13 @@ const {registerUsers, loginUsers, getUser, changeAvatar, editUser, getAuthors} =
 router.post("/register", registerUsers);
 
 router.post("/login", loginUsers);
+router.get("/authors", getAuthors);
 
 router.get("/:userId", getUser);
 
-router.put("/:userId/avatar", changeAvatar);
+router.post("/change-avatar", changeAvatar);
 
-router.put("/:userId", editUser);
+router.patch("/:userId", editUser);
 
-router.get("/authors", getAuthors);
 
 module.exports = router;
