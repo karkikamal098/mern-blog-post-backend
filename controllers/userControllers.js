@@ -12,8 +12,7 @@ const jwt = require("jsonwebtoken");
 
 const fs = require("fs");
 const path = require("path");
-const { v4: uuidv4 } = require('uuid');
-
+const { v4: uuidv4 } = require("uuid");
 
 const registerUsers = async (req, res, next) => {
   try {
@@ -87,77 +86,79 @@ const loginUsers = async (req, res, next) => {
 //protected
 const getUser = async (req, res, next) => {
   try {
-    const {userId} = req.params;
-    
+    const { userId } = req.params;
+
     const user = await User.findById(userId).select("-password");
 
-    if(!user){
+    if (!user) {
       return next(new HttpError("user not found", 404));
     }
-    res.status(200).json({user});
-    
+    res.status(200).json({ user });
   } catch (error) {
     return next(new HttpError(error.message, 500));
   }
-}
-
+};
 
 // ===change user Avatar
 // POST = api/users/change-avatar
 //protected
 const changeAvatar = async (req, res, next) => {
   try {
-     
     //files from field
-     if(!req.files.avatar){
+    if (!req.files.avatar) {
       return next(new HttpError("file not found, please choose the file", 404));
-     }
+    }
 
     //files from the database
-    const user= await User.findById(req.user.id);
-    if(!user){
+    const user = await User.findById(req.user.id);
+    if (!user) {
       return next(new HttpError("User not found", 404));
     }
 
-   
-
     //delete the old avatar
-    if(user.avatar){
-      const avatarPath =fs.unlink(path.join(__dirname, "..", "uploads", user.avatar),(err) => {
-        if(err){
-        return next(HttpError(err));
+    if (user.avatar) {
+      const avatarPath = fs.unlink(
+        path.join(__dirname, "..", "uploads", user.avatar),
+        (err) => {
+          if (err) {
+            return next(HttpError(err));
+          }
         }
-      });
+      );
     }
 
-    const {avatar} = req.files;
-  //check the file size
-    if (avatar.size.length>50){
+    const { avatar } = req.files;
+    //check the file size
+    if (avatar.size.length > 50) {
       return next(new HttpError("file size is too large", 413));
     }
 
     //create new avatar name
-    const avatarName= avatar.name;
-    const splitName= avatarName.split(".");
-    const changedAvatarName= splitName[0]+ uuidv4() + splitName[split.length-1];
-
-   
+    const avatarName = avatar.name;
+    const splitName = avatarName.split(".");
+    const changedAvatarName =
+      splitName[0] + uuidv4() + splitName[split.length - 1];
 
     //add new avatar to the database
-   avatar.mv(path.join(__dirname, "..", "uploads",changedavatarname),(err)=>{
-      if(err){
-        return next(HttpError(err));
+    avatar.mv(
+      path.join(__dirname, "..", "uploads", changedavatarname),
+      (err) => {
+        if (err) {
+          return next(HttpError(err));
+        }
       }
-    });
-    
-    const updatedAvatar = await User.findByIdAndUpdate(req.user.id, {avatar: changedAvatarName}, {update:true});
-    if(!updatedAvatar){
+    );
+
+    const updatedAvatar = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatar: changedAvatarName },
+      { update: true }
+    );
+    if (!updatedAvatar) {
       return next(new HttpError("avatar not updated", 404));
     }
 
     res.status(200).json(updatedAvatar);
-
-      
   } catch (error) {
     return next(new HttpError(error.message, 500));
   }
@@ -167,11 +168,46 @@ const changeAvatar = async (req, res, next) => {
 // POST = api/users/edit-User
 //protected
 const editUser = async (req, res, next) => {
-   try {
-    
-   } catch (error) {
-    
-   }
+  try {
+    const {name, email, currentPassword, newPassword, confirmNewPassword}= req.body;
+    if (!name || !email|| !newPassword || !confirmNewPassword){
+      return next(new HttpError("please enter all the fields", 400));
+    }
+     //checking uer from the database
+     const user = await User.findById(req.user.id);
+    if (!user){
+      return next(new HttpError("User not found", 404));
+    }
+    //check if user already exists
+    const emailExist = await User.findOne({email});
+    if (emailExist && (emailExist._id !== req.user.id)){
+      return next(new HttpError("Email already in used", 400));
+    }
+
+    if (newPassword !== confirmNewPassword ){
+      return next(new HttpError("current password does not match", 400));
+    }
+
+     //check if the current password is correct
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match){
+      return next(new HttpError("current password does not match", 401));
+    }
+
+
+
+    //Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(newPassword,salt);
+
+  
+
+    //Update the data of users
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, {name,email,password:hashPassword}, {new:true})
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // ===get authors
@@ -183,7 +219,6 @@ const getAuthors = async (req, res, next) => {
     console.log("Authors found:", authors);
 
     res.status(200).json(authors);
-    
   } catch (error) {
     console.error("Error fetching authors", error); //log the error
     return next(new HttpError(error));
