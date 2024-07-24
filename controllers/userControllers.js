@@ -185,7 +185,7 @@ const editUser = async (req, res, next) => {
     }
 
     if (newPassword !== confirmNewPassword ){
-      return next(new HttpError("current password does not match", 400));
+      return next(new HttpError("current password do not match", 400));
     }
 
      //check if the current password is correct
