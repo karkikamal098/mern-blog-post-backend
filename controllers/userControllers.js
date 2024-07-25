@@ -121,7 +121,7 @@ const changeAvatar = async (req, res, next) => {
         path.join(__dirname, "..", "uploads", user.avatar),
         (err) => {
           if (err) {
-            return next(HttpError(err));
+            return next(new HttpError(err));
           }
         }
       );
@@ -168,47 +168,44 @@ const changeAvatar = async (req, res, next) => {
 // POST = api/users/edit-User
 //protected
 const editUser = async (req, res, next) => {
-  try {
-    const {name, email, currentPassword, newPassword, confirmNewPassword}= req.body;
-    if (!name || !email|| !newPassword || !confirmNewPassword){
-      return next(new HttpError("please enter all the fields", 400));
-    }
-     //checking uer from the database
-     const user = await User.findById(req.user.id);
-    if (!user){
-      return next(new HttpError("User not found", 404));
-    }
-    //check if user already exists
-    const emailExist = await User.findOne({email});
-    if (emailExist && (emailExist._id !== req.user.id)){
-      return next(new HttpError("Email already in used", 400));
-    }
-
-    if (newPassword !== confirmNewPassword ){
-      return next(new HttpError("current password do not match", 400));
-    }
-
-     //check if the current password is correct
-    const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match){
-      return next(new HttpError("current password does not match", 401));
-    }
-
-
-
-    //Hash the new password
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(newPassword,salt);
-
-  
-
-    //Update the data of users
-    const updatedUser = await User.findByIdAndUpdate(req.user.id, {name,email,password:hashPassword}, {new:true})
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    return next(error);
+  try{
+  const {name, email, currentPassword, newPassword, newConfirmPassword} = req.body;
+  if(!name || !email || !currentPassword || !newPassword || !newConfirmPassword){
+    return next(new HttpError("please enter all the fields", 400));
   }
-};
+
+  //checking user from the database
+  const user = await User.findById(req.user.id);
+  if(!user){
+    return next(new HttpError("User not found", 404));
+  }
+  
+  if (newPassword != newConfirmPassword){
+   return next(new HttpError("please enter both the new password and the new confirm password correct", 400));
+  }
+
+  //email check
+  const emailExist = await User.findOne({email});
+  if(emailExist && (emailExist._id != req.user.id)){
+    return next(new HttpError("email already exist", 400));
+  }
+
+  //password hash
+  const Salt= await bcrypt.genSalt(10);
+  const hashPassword= await bcrypt.hash(newPassword, Salt);
+
+  //update garne bela
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, {name,email,password:hashPassword}, {new: true})
+  res.status(200).json(updatedUser);
+  }
+  catch(error){
+    return next(new HttpError(error.message, 500));
+  }
+}
+
+
+
+
 
 // ===get authors
 // POST = api/users/authors
