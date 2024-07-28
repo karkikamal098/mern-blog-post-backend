@@ -14,49 +14,53 @@ require("dotenv").config();
 //protected
 const createPost = async (req, res, next) => {
   try {
-    const {title, category, description } = req.body;
-    if (!title || !category || !description) {
-      return next(new HttpError("don't let any field empty", 403));
-    }
+    const { title, category, description } = req.body;
+    const { thumbnail } = req.files;
 
-    // const { thumbnail } = req.files;
-    // //checking the filesize
-    // if (thumbnail.size > 200000) {
-    //   return next(new HttpError("file size is too large", 400));
+    // if (!title || !category || !description || !req.files) {
+    //   return next(new HttpError("don't let any field is left empty",402));
     // }
 
-    // let filename = thumbnail.name;
-    // let splittedName = filename.split(".");
-    // const photoName =
-    //   splittedName[0] + uuid.v4() + splittedName[splittedName.length - 1];
+    //checking the filesize
+    if (thumbnail.size > 200000) {
+      return next(new HttpError("file size is too large", 400));
+    }
 
-    // //move the file to public/uploads folder
-    // thumbnail.mv(
-    //   path.join("__dirname", "..", "uploads", photoName),
-    //   async (err) => {
-    //     if (err) {
-    //       return next(new HttpError("Failed to upload the file", 500));
-    //     } else {
+    let filename = thumbnail.name;
+    let splittedName = filename.split(".");
+    const photoName =
+      splittedName[0] + uuid.v4() + splittedName[splittedName.length - 1];
+
+    //move the file to public/uploads folder
+    thumbnail.mv(
+      path.join(__dirname, "..", "/uploads", photoName),
+      async (err) => {
+        if (err) {
+          return next(new HttpError("Failed to upload the file", 500));
+        } else {
           //creating a new post with thumbnail path
           const newPost = await Post.create({
             title,
             category,
             description,
-            creator: req.user.id,
+            thumbnail: newFilename,
+            // creator: req.user.id,
           });
           if (!newPost) {
             return next(new HttpError("Failed to create post", 500));
           }
           //count the post of the users
-          let postCount = await User.findOne(req.user.id);
-          let userPostCount = postCount + 1;
+          let currentUser = await User.findById(req.user.id);
+          const userPostCount = currentUser.posts + 1;
           await User.findByIdAndUpdate(req.user.id, {
             postCount: userPostCount,
           });
-       
+        }
+      }
+    );
+
     res.staus(200).json("create posted successfully");
-    }
-    catch (error) {
+  } catch (error) {
     return next(new HttpError(error.message, 500));
   }
 };
@@ -117,10 +121,14 @@ const getCatPosts = async (req, res, next) => {
 //UNprotected
 const getUserPosts = async (req, res, next) => {
   try {
-    const userPost = await Post.findById(req.user.id);
-    if (req.params.id === req.user.id) {
-      res.status(200).json({ title: title, category: category, description });
+    const userPost = await Post.find({ creator: req.params }).sort({
+      createdAt: -1,
+    });
+    if (!userPost) {
+      return next(new HttpError("User post not found", 404));
     }
+
+    res.status(200).json(Post);
   } catch {
     return next(new HttpError("User not found", 404));
   }
@@ -131,14 +139,14 @@ const getUserPosts = async (req, res, next) => {
 //protected
 const editPosts = async (req, res, next) => {
   try {
-    const { title, category, description } = await User.findById(req.id);
-    if (!title || !category || !description) {
+    const postEdit = await Post.find(req.params.id);
+    const { title, category, description } = await req.body;
+    if (!postEdit) {
       return next(new HttpError("post not found", 404));
     }
 
-    const post = await Post.findById(req.Post.id);
-    if (!post) {
-      return next(new HttpError("post not found", 404));
+    if (!title || !category || !description) {
+      return next(new HttpError("don't let any field empty", 403));
     }
 
     if (post.creator.toString() !== req.user.id) {
@@ -148,9 +156,9 @@ const editPosts = async (req, res, next) => {
     }
 
     const updatedPost = await post.findByIdAndUpdate(req.post.id, {
-      title,
-      category: req.post.category,
-      description: req.post.description,
+      title: req.body.title,
+      category: req.body.category,
+      description: req.body.description,
     });
 
     if (!updatedPost) {

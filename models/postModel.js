@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 
-const userSchema = new Schema(
+const postSchema = new Schema(
   {
     title: { type: String, required: true },
     category: {
@@ -9,9 +9,9 @@ const userSchema = new Schema(
       message: "Value is not supported",
     },
     description: { type: String, required: true },
-    author: { type: Schema.Types.ObjectId, ref: "User" },
+    creator: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timeStamps: true }
 );
 
-module.exports = model("Post", userSchema);
+module.exports = model("Post", postSchema);

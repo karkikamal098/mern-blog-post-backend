@@ -12,7 +12,7 @@ const {
   delPosts,
 } = require("../controllers/postControllers");
 
-router.post("/", authMiddleware, createPost);
+router.post("/post", authMiddleware, createPost);
 router.get("/", getPosts);
 router.get("/:id", getPost);
 router.get("/categories/:category", getCatPosts);
